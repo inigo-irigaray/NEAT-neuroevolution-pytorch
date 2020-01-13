@@ -8,7 +8,7 @@ try:
 except ImportError:
   from ConfigParser import SafeConfigParser as ConfigParser
   
-class ConfigParser:
+class ConfigParameter:
   def __init__(self, name, value_type, default=None):
     self.name = name
     self.value_type = value_type
