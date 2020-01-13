@@ -4,13 +4,11 @@ from .graphs import feed_forward
 from .activation_functions import sigmoid_act
   
 class FeedForwardNet():
-  def __init__(self, n_in, n_out, in2out, out2out, out_responses, out_biases, batch_size=1, 
-               act=sigmoid_act, dtype=torch.float64):
+  def __init__(self, n_in, n_out, in2out, out_responses, out_biases, batch_size=1, act=sigmoid_act, dtype=torch.float64):
     
     self.n_in = n_in
     self.n_out = n_out
     self.in2out = torch.tensor((n_out, n_in)), in2out, dtype=dtype)
-    self.out2out = torch.tensor((n_out, n_out), out2out, dtype=dtype)
     self.out_responses = torch.tensor(out_responses, dtype=dtype)
     self.out_biases = torch.tensor(out_biases, dtype=dtype)
     self.act = act
@@ -27,7 +25,7 @@ class FeedForwardNet():
         raise RuntimeError("Expected %d inputs, got %d" % (self.n_in, len(inputs[1])))
       
       inputs = torch.tensor(inputs, dtype=self.dtype)
-      outputs_inputs = (self.in2out.mm(inputs.t()).t() + self.out2out.mm(self.outputs.t()).t())
+      outputs_inputs = (self.in2out.mm(inputs.t()).t())
       self.outputs = self.activation(self.output_responses * output_inputs + self.out_biases)
       return self.outputs
       
