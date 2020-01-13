@@ -37,21 +37,21 @@ class FloatAttribute(BaseAttribute):
     init_type = getatr(config, self.init_type_name).lower()
     
     if ("gauss" in init_type) or ("normal" in init_type):
-      return self.clamp(gauss(mean, stdev), config)
+      return self.clamp(random.gauss(mean, stdev), config)
     
     if "uniform" in init_type:
       min_value = max(getattr(config, self.min_value_name), (mean - 2*stdev))
       max_value = min(getattr(config, self.max_value_name), (mean + 2*stdev))
-      return uniform(min_value, max_value)
+      return random.uniform(min_value, max_value)
     
     raise RuntimeError("Unknown init_type {!r} for {!s}".format(getattr(config, self.init_type_name), self.init_type_name))
     
   def mutate_value(self, value, config):
     mutate_rate = getattr(config, self.mutate_rate_name)
-    r = random()
+    r = random.random()
     if r < mutate_rate:
       mutate_power = getattr(config, self.mutate_power_name)
-      return self.clamp(value + gauss(0.0, mutate_power), config)
+      return self.clamp(value + random.gauss(0.0, mutate_power), config)
     
     replace_rate = getattr(config, self.replace_rate_name)
     if r < replace_rate + mutate_rate:
@@ -75,7 +75,7 @@ class BoolAttribute(BaseAttribute):
     elif default in ('false', '0', 'off', 'no'):
       return False
     elif default in ('random', 'none'):
-      return bool(random() < 0.5)
+      return bool(random.random() < 0.5)
     
     raise RuntimeError("Unknown default value {!r} for {!s}".format(default, self.name))
     
@@ -87,9 +87,9 @@ class BoolAttribute(BaseAttribute):
       mutate_rate += getattr(config, self.rate_to_true_add_name)
     
     if mutate_rate > 0:
-      r = random()
+      r = random.random()
       if r < mutate_rate:
-        return random() < 0.5
+        return random.random() < 0.5
     return value
   
   def validate(self, config):
@@ -104,16 +104,16 @@ class StringAttribute(BaseAttribute):
     default = getattr(config, self.default_name)
     if default.lower() in ('none', 'random'):
       options = getattr(config, self.options_name)
-      return choice(options)
+      return random.choice(options)
     return default
   
   def mutate_value(self, value, config):
     mutate_rate = getattr(config, self.mutate_rate_name)
     if mutate_rate > 0:
-      r = random()
+      r = random.random()
       if r < mutate_rate:
         options = getattr(config, self.options_name)
-        return choice(options)
+        return random.choice(options)
     return value
   
   def validate(self, config):
