@@ -10,7 +10,7 @@ def required_for_outputs(inputs, outputs, connections):
     if not layer_nodes:
       break
       
-    requires = required.union(layer_nodes)
+    required = required.union(layer_nodes)
     s = s.union(t)
   
   return required
