@@ -29,3 +29,6 @@ class FeedForwardNet():
       self.outputs = self.activation(self.output_responses * output_inputs + self.out_biases)
       return self.outputs
       
+  @staticmethod
+  def create(genome, config, batch_size=1, activation=sigmoid_activation, prune_empty=False):
+    
