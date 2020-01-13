@@ -106,7 +106,7 @@ class DefaultClassConfig:
     write_pretty_params(f, config, config._params)
     
    
-class Config(object):
+class Config:
   """A simple container for user-configurable parameters of NEAT."""
 
   __params = [ConfigParameter('pop_size', int), ConfigParameter('fitness_criterion', str), 
