@@ -28,4 +28,6 @@ class FeedForwardNet():
       
       inputs = torch.tensor(inputs, dtype=self.dtype)
       outputs_inputs = (self.in2out.mm(inputs.t()).t() + self.out2out.mm(self.outputs.t()).t())
+      self.outputs = self.activation(self.output_responses * output_inputs + self.out_biases)
+      return self.outputs
       
