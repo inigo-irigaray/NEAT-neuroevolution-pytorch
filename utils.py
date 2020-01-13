@@ -8,7 +8,7 @@ def make_dense(shape, connections, dtype=torch.float64):
     return matrix
   rows, cols = np.array(idxs).T
   rows = torch.tensor(rows)
-  cols=torch.tensor(cols)
+  cols = torch.tensor(cols)
   matrix[rows, cols] = torch.tensor(wieghts, dtype=dtype)
   return matrix
 
