@@ -133,4 +133,57 @@ class DefaultGenome:
         self.connect_partial_nodirect(config)
         
   def configure_crossover(self, genome1, genome2, config):
+    assert isinstance(genome1.fitness, (int, float))
+    assert isinstance(genome2.fitness, (int, float))
+    if genome1.fitness > genome2.fitness:
+      parent1, parent2 = genome1, genome2
+    else:
+      parent1, parent2 = genome2, genome1
+      
+    for key, cg1 in parent1.connections.items():
+      cg2 = parent2.connections.get(key) #'.get(key)' instead of '[key]' cause it returns None if '[key]' doesn't exist
+      if cg2 is None: # ---> excess or disjoint gene, copy from fittest parent
+        self.connections[key] = cg1.copy()
+      else: #homologous gene, combine parents' genes
+        self.connections[key] = cg1.crossover(cg2)
+        
+    parent1_set = parent1.nodes
+    parent2_set = parent2.nodes
     
+    for key, ng1 in parent1_set.items():
+      ng2 = parent2_set.get(key)
+      assert key not in self.nodes
+      if ng2 is None: #extra gene, copy from fittest parent
+        self.nodes[key] = ng1.copy()
+      else: #homologous gene, combine parents' genes
+        self.nodes[key] = ng1.crossover(ng2)
+        
+  def mutate(self, config):
+    if config.single_structural_mutation:
+      div = max(1, (config.node_add_prob + config.node_delete_prob + config.conn_add_prob + config.conn_delete_prob))
+      r = random.random()
+      if r < (config.node_add_prob / div):
+        self.mutate_add_node(config)
+      elif r < ((config.node_add_prob + config.node_delete_prob) / div):
+        self.mutate_delete_node(config)
+      elif r < ((config.node_add_prob + config.node_delete_prob + config.conn_add_prob) / div):
+        self.mutate_add_connection(config)
+      elif r < 1:#sum of probs/div can yield a result >1, but random.random() always produces [0.0,1.0), so same but simpler
+        self.mutate_delete_connection(config)
+    else:
+      if random.random() < config.node_add_prob:
+        self.mutate_add_node(config)
+      if random.random() < config.node_delete_prob:
+        self.mutate_delete_node(config)
+      if random.random() < config.conn_add_prob:
+        self.mutate_add_connection(config)
+      if random.random() < config.conn_delete_prob:
+        self.mutate_delete_connection(config)
+    
+    for cg in self.connections.values():#mutate connection genes
+      cg.mutate(config)
+      
+    for ng in self.nodes.values():#mutate node genes
+      ng.mutate(config)
+      
+      
