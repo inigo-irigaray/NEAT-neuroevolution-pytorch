@@ -1,3 +1,5 @@
+"""Implementation based on NEAT-Python attributes.py"""
+
 import random
 from .config import ConfigParameter
 
