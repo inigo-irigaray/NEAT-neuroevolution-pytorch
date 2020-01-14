@@ -316,7 +316,35 @@ class DefaultGenome:
     connection.init_attributes(config)
     return connection
   
-  
-          
-  
-  
+  def connect_fs_neat_nohidden(self, config):
+    in_key = random.choice(config.input_keys)
+    for out_key in config.output_keys:
+      connection = self.create_connection(config, in_key, out_key)
+      self.connections[connection.key] = connection
+      
+  def connect_fs_neat_hidden(self, config):
+    in_key = random.choice(config.input_keys)
+    others = [i for i in self.nodes.keys() if i not in config.input_keys]
+    for out_key in others:
+      connection = self.create_connection(config, in_key, out_key)
+      self.connections[connection.key] = connection
+      
+  def compute_full_connection(self, config, direct):
+    hidden = [i for i in self.node.keys() if i not in config.output_keys]
+    output = [i for i in self.node.keys() if i in config.output_keys]
+    connections = []
+    if direct or (not hidden): #direct connections
+      for in_key in config.input_keys:
+        for out_key in config.output_keys:
+          connections.append((in_key, out_key))
+    if hidden: #hidden connections
+      for in_key in config.input_keys:
+        for h in hidden:
+          connections.append((in_key, h))
+      for h in hidden:
+        for out_key in config.output_keys:
+          connections.append((h, out_key))
+    if not config.feed_forward: #self-connections in RNNs
+      for i in self.nodes.keys():
+        connections.append((i, i))
+    return connections
