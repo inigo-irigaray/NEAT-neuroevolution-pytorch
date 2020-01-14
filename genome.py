@@ -186,4 +186,49 @@ class DefaultGenome:
     for ng in self.nodes.values():#mutate node genes
       ng.mutate(config)
       
-      
+  def mutate_add_node(self, config):
+    if not self.connections:
+      if config.check_structural_mutation_surer():
+        self.mutate_add_connection(config)
+      return
+    
+    conn2split = random.choice(list(self.connection.values()))
+    new_n_key = config.get_new_node_key(self.nodes)
+    ng = self.create_node(config, new_n_key)
+    self.nodes[new_n_key] = ng
+    
+    conn_to_split.enabled = False
+    in_n, out_n = conn_to_split.key
+    self.add_connection(config, in_n, new_n_key, 1.0, True)#connects in_n node with new node with weight=1.0
+    self.add_connection(config, new_n_key, out_n, conn2split.weight, True)#connects new node with out_n with weight bewteen in_n and out_n
+    
+  def add_connection(self, config, in_key, out_key, weight, enabled):
+    assert isinstance(in_key, int)
+    assert isinstance(out_key, int)
+    assert out_key >= 0
+    assert isinstance(enabled, bool)
+    
+    key = (in_key, out_key)
+    connection = config.connection_gene_type(key)
+    connection.init_attributes(config)
+    connection.weight = weight
+    connection.enabled = enabled
+    self.connections[key] = connection
+    
+  def mutate_delete_node(self, config):
+    available_nodes = [k for k in self.nodes.keys() if k not in config.output_keys]
+    if not available_nodes:
+      return -1
+    del_key = random.choice(available_nodes)
+    connections_to_delete = set()
+    for key, value in self.connections.items():
+      if del_key in value.key:
+        connections_to_delete.add(value.key)
+    for key in connections_to_delete:
+      del self.connections[key]
+    del self.nodes[del_key]
+    
+    return del_key
+  
+  def mutate_add_connection(self, config):
+    
