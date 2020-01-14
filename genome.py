@@ -348,3 +348,31 @@ class DefaultGenome:
       for i in self.nodes.keys():
         connections.append((i, i))
     return connections
+  
+  def connect_full_nodirect(self, config):
+    for in_key, out_key in self.compute_full_connections(config, False):
+      connection = self.create_connection(config, in_key, out_key)
+      self.connections[connection.key] = connection
+      
+  def connect_full_direct(self, config):
+    for in_key, out_key in self.compute_full_connections(config, True):
+      connection = self.create_connection(config, in_key, out_key)
+      self.connections[connection.key] = connection
+      
+  def connect_partial_nodirect(self, config):
+    assert 0 <= config.connection_fraction <= 1
+    all_connections = self.compute_full_connection(config, False)
+    shuffle(all_connections)
+    n2add = int(round(len(all_connections) * config.connection_fraction))
+    for in_key, out_key in all_connections[:n2add]:
+      connection = self.create_connection(config, in_key, out_key)
+      self.connections[connection.key] = connection
+    
+  def connect_partial_direct(self, config):
+    assert 0 <= config.connection_fraction <= 1
+    all_connections = self.compute_full_connection(config, True)
+    shuffle(all_connections)
+    n2add = int(round(len(all_connections) * config.connection_fraction))
+    for in_key, out_key in all_connections[:n2add]:
+      connection = self.create_connection(config, in_key, out_key)
+      self.connections[connection.key] = connection
