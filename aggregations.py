@@ -1,3 +1,5 @@
+"""Implementation based on NEAT-Python aggregations.py"""
+
 from functools import reduce
 from operator import mul
 
