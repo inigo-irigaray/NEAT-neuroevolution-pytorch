@@ -53,7 +53,7 @@ class BaseGene:
     Mutates genes' values according to configuration parameters.
     """
     for a in self._gene_attributes:
-      value = geattr(self, a.name)
+      value = getattr(self, a.name)
       setattr(self, a.name, a.mutate_value(v, config))
       
   def copy(self):
@@ -67,5 +67,16 @@ class BaseGene:
   
   def cross_over(self, gene2):
     """
+    Core implementation of evolution in NEAT where homologous genes' (descendants from same parent-have same key)
+    attributes are randomly mixed to create a new gene.
     """
-    
+    assert self.key == gene2.key
+    new_gene = self.__class__(self.key)
+    for a in self._gene_attributes:
+      if random.random() > 0.5:
+        setattr(new_gene, a.name, getattr(self, a.name))
+      else:
+        setattr(new_gene, a.name, getattr(gene2, a.name))
+    return new_gene
+  
+  
