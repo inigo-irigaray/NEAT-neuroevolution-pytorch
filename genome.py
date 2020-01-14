@@ -1,5 +1,6 @@
 """Implementation based on NEAT-Python genome.py"""
 
+import sys
 import random
 from itertools import count
 
@@ -91,4 +92,45 @@ class DefaultGenomeConfig:
       raise RuntimeError("Invalid structural_mutation_surer {!r}".format(self.strcutural_mutation_surer))
       
 class DefaultGenome:
+  def __init__(self, key):
+    self.key = key
+    self.connections = {}
+    self.nodes = {}
+    self.fitness = None
+    
+  @classmethod
+  def parse_config(cls, param_dict):
+    param_dict['node_gene_type'] = genes.DefaultNodeGene
+    param_dict['connection_gene_type'] = genes.DefaultConnectionGene
+    return DefaultGenomeConfig(param_dict)
   
+  @classmethod
+  def write_config(cls, f, config):
+    config.save(f)
+    
+  def configure_new(self, config):
+    for node_key in config.output_keys:
+      self.nodes[node_key] = self.create_node(config, node_key)
+      
+    if config.n_hid > 0:
+      for i in range(config.n_hid):
+        node_key = config.get_new_node_key(self.nodes)
+        assert node_key not in self.nodes
+        node = sefl.create_node(config, node_key)
+        self.nodes[node_key] = node
+        
+    if "fs_neat" in config.initial_connection:
+      if config.initial_connection == "fs_neat_nohidden":
+        self.connect_fs_neat_nohidden(config)
+      elif config.initial_connection == "fs_neat_hidden":
+        self.connect_fs_neat_hidden(config)
+      else:
+        if config.n_hid > 0:
+          print("Warning: initial_connection = fs_neat will not connect to hidden nodes;",
+                "\tif this is desired, set initial_connection = fs_nohidden;",
+                "\tif if not, set initial_connection = fs_neat_hidden", sep="\n", file=sys.stderr)
+          
+        self.connect_partial_nodirect(config)
+        
+  def configure_crossover(self, genome1, genome2, config):
+    
