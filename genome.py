@@ -98,6 +98,17 @@ class DefaultGenome:
     self.nodes = {}
     self.fitness = None
     
+  def __str__(self):
+    string = "Key: {0}\nFitness: {1}\nNodes:".format(self.key, self.fitness)
+    for k, ng in self.nodes.items():
+      string += "\n\t{0} {1!s}".format(k, ng)
+    string += "\nConnections:"
+    connections = list(self.connection.values())
+    connections.sort()
+    for c in connections:
+      string += "\n\t" + str(c)
+    return string
+    
   @classmethod
   def parse_config(cls, param_dict):
     param_dict['node_gene_type'] = genes.DefaultNodeGene
@@ -290,7 +301,22 @@ class DefaultGenome:
     return distance
   
   def size(self):
-    
+    n_enabled_conn = sum([1 for cg in self.connections.values() if cg.enabled])
+    return len(self.nodes), n_enable_conn
+  
+  @staticmethod
+  def create_node(config, node_key):
+    node = config.node_gene_type(node_key)
+    node.init_attributes(config)
+    return node
+  
+  @staticmethod
+  def create_connection(config, in_key, out_key):
+    connection = config.connection_gene_type((in_key, out_key))
+    connection.init_attributes(config)
+    return connection
+  
+  
           
   
   
