@@ -87,12 +87,12 @@ class DefaultNodeGene(BaseGene):
                    StringAttribute("aggregation", options="sum")]
   
   def __init__(self, key):
-    assert isinstance(key, int), "DefaultNodeGene key must be an int, not an {!r}".format(key)
+    assert isinstance(key, int), "DefaultNodeGene key must be an int, not a {!r}".format(key)
     BaseGene.__init__(self, key)
     
   def distance(self, other, config):
     """
-    Computes how different genes' nodes are.
+    Computes how different node genes are.
     """
     distance = abs(self.bias - other.bias) + abs(self.response - other.response)
     if self.activation != other.activation:
@@ -101,3 +101,19 @@ class DefaultNodeGene(BaseGene):
       distance += 1
     return distance * config.compatibility_weight_coefficient
   
+
+class DefaultConnectionGene(BaseGene):
+  _gene_attributes = [FloatAttribute("weight"), BoolAttribute("enabled")]
+  
+  def __init__(self, key):
+    assert isinstance(key, tuple), "DefaultConnectionGene key must be a tuple, not a {!r}".format(key)
+    BaseGene.__init__(self, key)
+    
+  def distance(self, other, config):
+    """
+    Computes how different connection genes are.
+    """
+    distance = abs(self.weight - other.weight)
+    if self.enabled != other.enabled:
+      distance += 1
+    return distance * config.compatibility_weight_coefficient
