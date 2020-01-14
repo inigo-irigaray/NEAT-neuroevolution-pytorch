@@ -227,8 +227,27 @@ class DefaultGenome:
     for key in connections_to_delete:
       del self.connections[key]
     del self.nodes[del_key]
-    
     return del_key
   
   def mutate_add_connection(self, config):
+    possible_outputs = list(self.nodes.keys())
+    out_node = random.choice(possible_outputs)
+    possible_inputs = possible_outputs + config.input_keys
+    in_node = random.choice(possible_inputs)
     
+    key = (in_node, out_node)
+    if key in sel.connections: #avoids duplicating connections
+      if config.check_structural_mutation_surer():
+        self.connections[key].enables = True
+      return
+    if in_node in config.output_keys and out_node in config.output_keys: #avoids connecting two output nodes
+      return
+    if config.feed_forward and graphs.creates_cycle(list(self.connections.keys()), key):
+      return #avoids creating cycles for feed forward networks
+    cg = self.create_connection(config, in_node, out_node)
+    self.connections[cg.key] = cg
+    
+  def mutate_delete_connection(self, config):
+    if self.connections:
+      key = random.choice(list(self.connections.keys()))
+      del self.connections[key]
