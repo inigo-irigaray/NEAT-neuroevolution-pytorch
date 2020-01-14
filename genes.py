@@ -1,3 +1,5 @@
+"""Implementation based on NEAT-Python genes.py."""
+
 import warnings
 import random
 from .attributes import FloatAttribute, BoolAttribute, StringAttribute
@@ -50,7 +52,7 @@ class BaseGene:
       
   def mutate(self, config):
     """
-    Mutates genes' values according to configuration parameters.
+    Core implementation of evolution in NEAT where genes' values are mutated according to configuration parameters.
     """
     for a in self._gene_attributes:
       value = getattr(self, a.name)
@@ -79,4 +81,23 @@ class BaseGene:
         setattr(new_gene, a.name, getattr(gene2, a.name))
     return new_gene
   
+  
+class DefaultNodeGene(BaseGene):
+  _gene_attributes[FloatAttribute("bias"), FloatAttribute("response"), StringAttribute("activation", options="sigmoid"),
+                   StringAttribute("aggregation", options="sum")]
+  
+  def __init__(self, key):
+    assert isinstance(key, int), "DefaultNodeGene key must be an int, not an {!r}".format(key)
+    BaseGene.__init__(self, key)
+    
+  def distance(self, other, config):
+    """
+    Computes how different genes' nodes are.
+    """
+    distance = abs(self.bias - other.bias) + abs(self.response - other.response)
+    if self.activation != other.activation:
+      distance += 1
+    if self.aggregation != other.aggregation:
+      distance += 1
+    return distance * config.compatibility_weight_coefficient
   
