@@ -1,3 +1,5 @@
+"""Implementation based on NEAT-Python graphs.py"""
+
 def required_for_outputs(inputs, outputs, connections):
   required = set(outputs)
   s = set(outputs)
