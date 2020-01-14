@@ -1,6 +1,9 @@
-"""Implementation based on NEAT-Python reporting.py"""
-
+"""Implementation based on NEAT-Python reporting.py and Pytorch-Neat neat_reporter.py"""
+import json
 import time
+from pprint import pprint
+
+import numpy as np
 
 class ReporterSet:
   def __init__(self):
@@ -116,8 +119,8 @@ class StdOut(BaseReporter):
       
   def post_evaluate(self, config, population, species, best_genome):
     fitnesses = [c.fitness for c in population.values()]
-    fit_mean = mean(fitnesses)
-    fit_stdev = stdev(fitnesses)
+    fit_mean = np.mean(fitnesses)
+    fit_stdev = np.std(fitnesses)
     best_species_key = species.get_species_key(best_genome.key)
     print("Population's average fitness: {0:3.5f} stdev: {1:3.5f}".format(fit_mean, fit_stdev))
     print("Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}".format(best_genome.fitness, best_genome.size(),
@@ -137,3 +140,63 @@ class StdOut(BaseReporter):
       
   def info(self, message):
     print(message)
+
+ 
+class LogReporter(BaseReporter):
+  def __init__(self, filename, eval_best, eval_debug=False):
+    self.log = open(filename, "a")
+    self.generation = None
+    self.generation_start_time = None
+    self.generation_times = []
+    self.num_extinctions = 0
+    self.eval_best = eval_best
+    self.eval_debug = eval_debug
+    self.log_dict = {}
+    
+  def start_generation(self, generation):
+    self.log_dict["generation"] = generation
+    self.generation_start_time = time.time()
+    
+  def end_generation(self, config, population, species_set):
+    ng = len(population)
+    self.log_dict["pop_size"] = ng
+    ns = len(species_set.species)
+    self.log_dict["n_species"] = ns
+    elapsed = time.time() - self.generation_start_time
+    self.log_dict["time_elapsed"] = elapsed
+    self.generation_times.append(elapsed)
+    self.generation_times = self.generaton_times[-10:]
+    average = np.mean(self.generation_times)
+    self.log_dict["time_elapsed_avg"] = average
+    self.log_dict["n_extinctions"] = self.num_extinctions
+    pprint(self.log_dict)
+    self.log.write(json.dumps(self.log_dict) + "\n")
+    
+  def post_evaluate(self, config, population, species, best_genome):
+    fitnesses = [c.fitness for c in population.values()]
+    fit_mean = np.mean(fitnesses)
+    fit_stdev = np.std(fitnesses)
+    
+    self.log_dict["fitness_avg"] = fit_mean
+    self.log_dict["fitness_std"] = fit_std
+    self.log_dict["fitness_best"] = best_genome.fitness
+    
+    print("=" * 50 + " Best Genome: " + "=" * 50)
+    if self.eval_debug:
+      print(best_genome)
+      
+    best_fitness_val = self.eval_best(best_genome, config, debug=self.eval_debug)
+    self.log_dict["fitness_best_val"] = best_fitness_val
+    
+    n_neurons_best, n_conns_best = best_genome.size()
+    self.log_dict["n_neurons_best"] = n_neurons_best
+    self.log_dict["n_conns_best"] = n_conns_best
+    
+  def complete_extinction(self):
+    self.num_extinctions += 1
+    
+  def found_solution(self, config, generation, best):
+    pass
+  
+  def species_stagnant(self, skey, species):
+    pass
