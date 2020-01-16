@@ -76,13 +76,11 @@ class FeedForwardNet():
       out_idx = key2idx(out_key)
       
       if in_key in in_keys and out_key in out_keys:
-        #idxs, vals = in2out
-        in2out[0].append((out_idx, in_idx))
-        in2out[1].append(connection.weight)
+        idxs, vals = in2out
       else:
         raise ValueError("Invalid connection from key {} to key {}."format(in_key, out_key))
       
-      #idxs.append((out_idx, in_idx))
-      #vals.append(connection.weight)
+      idxs.append((out_idx, in_idx))
+      vals.append(connection.weight)
       
     return FeedForwardNet(n_in, n_out, in2out, out_responses, out_biases, batch_size, activation)
