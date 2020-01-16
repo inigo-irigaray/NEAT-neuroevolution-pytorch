@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from .graphs import feed_forward
+from .graphs import required_for_output
 from .activation_functions import sigmoid_act
   
 class FeedForwardNet():
@@ -30,5 +30,59 @@ class FeedForwardNet():
       return self.outputs
       
   @staticmethod
-  def create(genome, config, batch_size=1, activation=sigmoid_activation, prune_empty=False):
+  def create(genome, config, batch_size=1, activation=sigmoid_act, prune_empty=False):
+    genome_config = config.genome_config
+    required = required_for_output(genome_config.input_keys, genome_config.output_keys, genome_config.connections)
+    if prune_empty:
+      nonempty = {connection.key[1] for connection in genome.connections.values() if connection.enabled}.union(set(
+        genome_config.input_keys))
+      
+    in_keys = list(genome_config.input_keys)
+    out_keys = list(genome_config.output_keys)
+    out_responses = [genome.nodes[key].response for key in out_keys]
+    out_biases = [genome.nodes[key].bias for key in out_keys]
     
+    if prune_empty:
+      for i, key in enumerate(out_keys):
+        if key not in nonempty:
+          out_biases[i] = 0.0
+          
+    n_in = len(in_keys)
+    n_out = len(out_leys)
+    
+    in2idx = {key: i for i, key in enumerate(in_keys)}
+    out2idx = {key: i for i, key in enumerate(out_keys)}
+    
+    def key2idx(key):
+      if key in in_keys:
+        return in2idx[key]
+      elif key in out_keys:
+        return out2idx[key]
+    
+    in2out = ([], [])
+    for connection in genome.connections.values():
+      if not connection.enabled:
+        continue
+      
+      in_key, out_key = connection.key
+      if out_key not in required and in_key not in required:
+        continue
+      
+      if prune_empty and in_key not in nonempty:
+        print("Pruned {} connection".format(connection.key))
+        continue
+      
+      in_idx = key2idx(in_key)
+      out_idx = key2idx(out_key)
+      
+      if in_key in in_keys and out_key in out_keys:
+        #idxs, vals = in2out
+        in2out[0].append((out_idx, in_idx))
+        in2out[1].append(connection.weight)
+      else:
+        raise ValueError("Invalid connection from key {} to key {}."format(in_key, out_key))
+      
+      #idxs.append((out_idx, in_idx))
+      #vals.append(connection.weight)
+      
+    return FeedForwardNet(n_in, n_out, in2out, out_responses, out_biases, batch_size, activation)
