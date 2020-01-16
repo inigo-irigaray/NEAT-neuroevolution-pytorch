@@ -35,3 +35,20 @@ def feed_forward(inputs, outputs, connections):
     s = s.union(t)
     
   return layers
+
+def creates_cycle(connections, test):
+  inp, out = test
+  if inp == out:
+    return True
+  
+  visited = {out}
+  while True:
+    n_added = 0
+    for a, b in connections:
+      if a in visited and b not in visited:
+        if b == inp:
+          return True
+        visited.add(b)
+        n_added += 1
+    if n_added == 0:
+      return False
