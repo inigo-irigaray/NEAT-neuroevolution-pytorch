@@ -5,6 +5,8 @@ import math
 import torch
 import torch.nn.functional as F
 
+"""Selected scalars modify functions to have interesting properties around values -1, 0, 1 for x and y"""
+
 def sigmoid_act(x):
   return torch.sigmoid(5.0 * x)
   
