@@ -1,4 +1,4 @@
-"""Implementation based on NEAT-Python neat-python/aggregations.py:
+"""Implementation based on NEAT-Python neat-python/neat/aggregations.py:
 https://github.com/CodeReclaimers/neat-python/blob/master/neat/aggregations.py"""
 
 from functools import reduce
