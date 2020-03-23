@@ -1,20 +1,22 @@
+import math
+
 import torch
 import torch.nn.functional as F
 
 def sigmoid_act(x):
-  return torch.sigmoid(x)
+  return torch.sigmoid(5.0 * x)
   
 def tanh_act(x):
-  return torch.tanh(x)
+  return torch.tanh(2.5 * x)
 
 def sin_act(x):
-  return torch.sin(x)
+  return torch.sin(math.pi * x)
   
 def relu_act(x):
   return F.relu(x)
 
 def gaussian_act(x):
-  return torch.exp(- x**2)
+  return torch.exp(-5.0 * x**2)
 
 def identity_act(x):
   return x
