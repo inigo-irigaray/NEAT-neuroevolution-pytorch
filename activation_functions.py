@@ -1,3 +1,5 @@
+"""Implementation based on Uber's AI Lab Pytorch-NEAT/activations.py repository:
+https://github.com/uber-research/PyTorch-NEAT/blob/master/pytorch_neat/activations.py"""
 import math
 
 import torch
