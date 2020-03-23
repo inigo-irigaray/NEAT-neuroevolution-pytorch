@@ -1,28 +1,38 @@
-"""Implementation based on NEAT-Python attributes.py"""
+"""Implementation based on NEAT-Python neat-python/neat/attributes.py:
+https://github.com/CodeReclaimers/neat-python/blob/master/neat/attributes.py"""
 
 import random
 
 from .config import ConfigParameter
 
+
+
+
 class BaseAttribute:
+    """Creates base superclass for genes' attributes."""
     def __init__(self, name, **default_dict):
+        """Initializes attribute subclasses' _config_items dictionnaries and fuses them with their attribute name."""
         self.name = name
         for n, default in default_dict.items():
             self._config_items[n] = [self._config_items[n][0], default]
-        for n in self._config_items.keys():
+        for n in self._config_items:
             setattr(self, n + "_name", self.config_item_name(n))
       
-    def config_item_name(self, name):
-        return "{0}_{1}".format(self.name, name)
+    def config_item_name(self, base_name):
+        return "{0}_{1}".format(self.name, base_name)
   
     def get_config_params(self):
         return [ConfigParameter(self.config_item_name(n), self._config_items[n][0], self._config_items[n][1]) 
-                for n in self._config_items.keys()]
+                for n in self._config_items]
   
+
+
+
 class FloatAttribute(BaseAttribute):
+    """Stores numeric attributes for genes, such as connection weights."""
     _config_items = {"init_mean": [float, None],
                     "init_stdev": [float, None],
-                    "init_type": [str, 'gaussian'],
+                    "init_type": [str, 'gauss'],
                     "replace_rate": [float, None],
                     "mutate_rate": [float, None],
                     "mutate_power": [float, None],
@@ -66,7 +76,11 @@ class FloatAttribute(BaseAttribute):
     def validate(self, config):
         pass
   
+
+
+
 class BoolAttribute(BaseAttribute):
+    """Stores binary values for genes, namely enabled/disabled genes values."""
     _config_items = {"default": [str, None],
                     "mutate_rate": [float, None],
                     "rate_to_true_add": [float, 0.0],
@@ -101,6 +115,7 @@ class BoolAttribute(BaseAttribute):
         pass
   
 class StringAttribute(BaseAttribute):
+    """Stores string values for genes, such as CPPNs' activation functions."""
     _config_name = {"default": [str, None],
                     "options": [list, None],
                     "mutate_rate": [float, None]}
