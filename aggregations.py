@@ -5,7 +5,7 @@ from functools import reduce
 from operator import mul
 
 def sum_agg(inputs):
-  return sum(inputs)
+    return sum(inputs)
 
 def mul_agg(inputs):
     return reduce(mul, inputs, 1)
@@ -20,7 +20,7 @@ def mean_agg(inputs):
     return mean(inputs)
 
 def median_agg(inputs):
-  return median(inputs)
+    return median(inputs)
 
 str_to_aggregation = {
     'sum': sum_agg,
