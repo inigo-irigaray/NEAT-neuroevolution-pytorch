@@ -30,6 +30,6 @@ str_to_activation = {
     'sin': sin_act,
     'relu': relu_act,
     'gaussian': gaussian_act,
-    'identity': identity_activation,
+    'identity': identity_act,
     'abs': absolute_act,
 }
