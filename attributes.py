@@ -131,10 +131,9 @@ class StringAttribute(BaseAttribute):
         mutate_rate = getattr(config, self.mutate_rate_name)
         if mutate_rate > 0:
             r = random.random()
-        
-        if r < mutate_rate:
-            options = getattr(config, self.options_name)
-            return random.choice(options)
+            if r < mutate_rate:
+                options = getattr(config, self.options_name)
+                return random.choice(options)
 
         return value
   
