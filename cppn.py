@@ -32,7 +32,7 @@ class Node:
                  (self.name, self.response, self.bias, self.activation_name, self.aggregation_name)
         child_reprs = []
         for w, child in zip(self.weights, self.children):
-            child_reprs.append("    <- {} * ".format(w) + repr(child).replace("\n", "\n    "))
+            child_reprs.append("    <- {} * " % (w) + repr(child).replace("\n", "\n    "))
         return header + "\n" + "\n".join(child_reprs)
     
     def activate(self, xs, shape):
@@ -75,7 +75,7 @@ class Node:
             self.is_reset = None
             self.activs = None
             for child in self.children:
-                child._reset()
+                child._postreset()
             
     def _reset(self):
         if not self.is_reset:
@@ -87,7 +87,7 @@ class Node:
     def reset(self):
         self._prereset()
         self._reset()
-        self.postreset()
+        self._postreset()
         
         
         
@@ -124,43 +124,43 @@ class Leaf:
         
         
         
-def create_cppn(genome, config, leaf_names, node_names, out_activation=None):
+def create_cppn(config, genome, leaf_names, node_names, out_activation=None):
     genome_config = config.genome_config
     required = required_for_output(genome_config.input_keys, genome_config.output_keys, 
                                    genome.connections)
-    
-    node_inputs = {i: [] for i in genome_config.output_keys}
-    for cg in genome.connections.values():
-        if not cg.enabled:
+    # define coordinate frames for the phenotype from inputs and expressed genes in the genome
+    node_inputs = {inp: [] for inp in genome_config.output_keys}
+    for conngene in genome.connections.values():
+        if not conngene.enabled: # skip disabled genes in the genome
             continue
         
-        i, o = cg.key
-        if o not in required and i not in required:
+        inp, out = conngene.key # key = tuple(conn_inp_node, conn_out_node)
+        if out not in required and inp not in required:
             continue
             
-        if i in genome_config.output_keys:
+        if inp in genome_config.output_keys:
             continue
         
-        if o not in node_inputs:
-            node_inputs[o] = [(i, cg.weight)]
-        else:
-            node_inputs[o].append((i, cg.weight))
+        if out not in node_inputs:
+            node_inputs[out] = [(inp, conngene.weight)]
+        else: # fill in genome output genes that were created empty beforehand
+            node_inputs[out].append((inp, conngene.weight))
             
-        if i not in node_inputs:
-            node_inputs[i] = []
+        if inp not in node_inputs:
+            node_inputs[inp] = []
             
-    nodes = {i: Leaf() for i in genome_config.input_keys}
+    nodes = {inp: Leaf() for inp in genome_config.input_keys}
     
     assert len(leaf_names) == len(genome_config.input_keys)
-    leaves = {name: node[i] for name, i in zip(leaf_names, genome_config.input_keys)}
+    leaves = {name: node[inp] for name, inp in zip(leaf_names, genome_config.input_keys)}
     
-    def build_nodes:
+    def build_node(idx):
         if idx in nodes:
             return nodes[idx]
         node = genome.nodes[idx]
         conns = node_inputs[idx]
-        children = [build_node(i) for i, w in conns]
-        weights = [w for i, w in conns]
+        children = [build_node(i) for i, _ in conns]
+        weights = [w for _, w in conns]
         if idx in genome_config.output_keys and out_activation is not None:
             activation = out_activation
         else:
@@ -169,6 +169,7 @@ def create_cppn(genome, config, leaf_names, node_names, out_activation=None):
         nodes[idx] = Node(children, weights, node.response, node.bias, activation, aggregation, leaves=leaves)
         return nodes[idx]
     
+    # retroactively build graph
     for idx in genome_config.output_keys:
         build_node(idx)
     
