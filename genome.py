@@ -1,7 +1,7 @@
 """Implementation based on NEAT-Python genome.py"""
 
-import sys
 import random
+import sys
 from itertools import count
 
 import .activations
