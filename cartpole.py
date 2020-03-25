@@ -1,53 +1,60 @@
-"""Implementation from PyTorch-NEAT PyTorch-NEAT/pytorch-neat/multi_env_eval.py:
-https://github.com/uber-research/PyTorch-NEAT/blob/master/pytorch_neat/multi_env_eval.py"""
-
 import os
-
 import click
-import gym
 
+import gym
 import numpy as np
 
+from .genome import DefaultGenome
+from .multienv_eval import MultiEnvEvaluator
+from .population import Population
+from .recurrent import RecurrentNetwork
+from .reporting import LogReporter, StdOutReporter, StatisticsReporter
+from .reproduction import DefaultReproduction
+from .species import DefaultSpeciesSet
+from .stagnation import DeafultStagnation
 
 
 
-class MultiEnvEvaluator:
-    def __init__(self, make_net, activate_net, batch_size=1, max_env_steps=None, make_env=None, envs=None):
-        if envs is None:
-            self.envs = [make_env() for _ in range(batch_size)]
-        else:
-            self.envs = envs
-        self.make_net = make_net
-        self.activate_net = activate_net
-        self.batch_size = batch_size
-        self.max_env_steps = max_env_steps
 
-    def eval_genome(self, genome, config, debug=False):
-        net = self.make_net(genome, config, self.batch_size)
+max_env_steps = 200
 
-        fitnesses = np.zeros(self.batch_size)
-        states = [env.reset() for env in self.envs]
-        dones = [False] * self.batch_size
+def make_env():
+    return gym.make("CartPole-v0")
 
-        step_num = 0
-        while True:
-            step_num += 1
-            if self.max_env_steps is not None and step_num == self.max_env_steps:
-                break
-            if debug:
-                actions = self.activate_net(
-                    net, states, debug=True, step_num=step_num)
-            else:
-                actions = self.activate_net(net, states)
-            assert len(actions) == len(self.envs)
-            for i, (env, action, done) in enumerate(zip(self.envs, actions, dones)):
-                if not done:
-                    state, reward, done, _ = env.step(action)
-                    fitnesses[i] += reward
-                    if not done:
-                        states[i] = state
-                    dones[i] = done
-            if all(dones):
-                break
 
-        return sum(fitnesses) / len(fitnesses)
+def make_net(genome, config, bs):
+    return RecurrentNetwork.create(genome, config, bs)
+
+
+def activate_net(net, states):
+    outputs = net.activate(states).numpy()
+    return outputs[:, 0] > 0.5
+
+
+@click.command()
+@click.option("--n_generations", type=int, default=100)
+def run(n_generations):
+    # Load the config file, which is assumed to live in
+    # the same directory as this script.
+    config_path = os.path.join(os.path.dirname(__file__), "neat.cfg")
+    config = neat.Config(DefaultGenome, DefaultReproduction, DefaultSpeciesSet, DefaultStagnation, config_path)
+
+    evaluator = MultiEnvEvaluator(make_net, activate_net, make_env=make_env, max_env_steps=max_env_steps)
+
+    def eval_genomes(genomes, config):
+        for _, genome in genomes:
+            genome.fitness = evaluator.eval_genome(genome, config)
+
+    pop = Population(config)
+    stats = StatisticsReporter()
+    pop.add_reporter(stats)
+    reporter = StdOutReporter(True)
+    pop.add_reporter(reporter)
+    logger = LogReporter("neat.log", evaluator.eval_genome)
+    pop.add_reporter(logger)
+
+    pop.run(eval_genomes, n_generations)
+
+
+if __name__ == "__main__":
+    run()
