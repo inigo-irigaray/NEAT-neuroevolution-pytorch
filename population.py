@@ -11,10 +11,13 @@ import .reporting
 class CompleteExtinctionException(Exception):
     pass
 
+
+
+
 class Population:
     def __init__(self, config, initial_state=None):
-        self.reporters = 
         self.config = config
+        self.reporters = reporting.ReporterSet()
         stagnation = config.stagnation_type(config.stagnation_config, self.reporters)
         self.reproduction = config.reproduction_type(config.reproduction_type, self.reporters, stagnation)
     
@@ -65,9 +68,9 @@ class Population:
       
             if not self.config.no_fitness_termination:
                 fv = self.fitness_criterion(g.fitness for g in self.population.values())
-            if fv >= self.config.fitness_threshold:
-                self.reporters.found_solution(self.config, self.generation, best)
-                break
+                if fv >= self.config.fitness_threshold:
+                    self.reporters.found_solution(self.config, self.generation, best)
+                    break
           
             self.population = self.reproduction.reproduce(self.config, self.species,
                                                           self.config.pop_size, self.generation)
@@ -75,7 +78,7 @@ class Population:
                 self.reporters.complete_extinction()
                 if self.config.reset_on_extinction:
                     self.population = self.reproduction.create_new(self.config.genome_type, self.config.genome_config, 
-                                                                   self.config.genome.pop_size)
+                                                                   self.config.pop_size)
                 else:
                     raise CompleteExtinctionException()
       
