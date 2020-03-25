@@ -28,6 +28,7 @@ class DefaultReproduction(DefaultClassConfig):
   
     @staticmethod
     def compute_spawn(adj_fitness, prev_sizes, pop_size, min_size):
+        """Calculates the number of offspring for a given niche(species) given its fitness"""
         adj_fit_sum = sum(adj_fitness)
         spawn_amounts = []
         for adj_fit, prev_size in zip(adj_fitness, prev_sizes):
