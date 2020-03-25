@@ -3,7 +3,7 @@ https://github.com/CodeReclaimers/neat-python/blob/master/neat/attributes.py"""
 
 import random
 
-from .config import ConfigParameter
+from config import ConfigParameter
 
 
 
@@ -17,14 +17,14 @@ class BaseAttribute:
             self._config_items[n] = [self._config_items[n][0], default]
         for n in self._config_items:
             setattr(self, n + "_name", self.config_item_name(n))
-      
+
     def config_item_name(self, base_name):
         return "{0}_{1}".format(self.name, base_name)
-  
+
     def get_config_params(self):
-        return [ConfigParameter(self.config_item_name(n), self._config_items[n][0], self._config_items[n][1]) 
+        return [ConfigParameter(self.config_item_name(n), self._config_items[n][0], self._config_items[n][1])
                 for n in self._config_items]
-  
+
 
 
 
@@ -38,44 +38,44 @@ class FloatAttribute(BaseAttribute):
                     "mutate_power": [float, None],
                     "max_value": [float, None],
                     "min_value": [float, None]}
-  
+
     def clamp(self, value, config):
         min_value = getattr(config, self.min_value_name)
         max_value = getattr(config, self.max_value_name)
         return max(min(value, max_value), min_value)
-  
+
     def init_value(self, config):
         mean = getattr(config, self.init_mean_name)
         stdev = getattr(config, self.init_stdev_name)
-        init_type = getatr(config, self.init_type_name).lower()
-    
+        init_type = getattr(config, self.init_type_name).lower()
+
         if ("gauss" in init_type) or ("normal" in init_type):
             return self.clamp(random.gauss(mean, stdev), config)
-    
+
         if "uniform" in init_type:
             min_value = max(getattr(config, self.min_value_name), (mean - 2*stdev))
             max_value = min(getattr(config, self.max_value_name), (mean + 2*stdev))
             return random.uniform(min_value, max_value)
-    
+
         raise RuntimeError("Unknown init_type {!r} for {!s}".format(getattr(config, self.init_type_name),
                                                                     self.init_type_name))
-    
+
     def mutate_value(self, value, config):
         mutate_rate = getattr(config, self.mutate_rate_name)
         r = random.random()
         if r < mutate_rate:
             mutate_power = getattr(config, self.mutate_power_name)
             return self.clamp(value + random.gauss(0.0, mutate_power), config)
-    
+
         replace_rate = getattr(config, self.replace_rate_name)
         if r < replace_rate + mutate_rate:
             return self.init_value(config)
-    
+
         return value
-  
+
     def validate(self, config):
         pass
-  
+
 
 
 
@@ -85,7 +85,7 @@ class BoolAttribute(BaseAttribute):
                     "mutate_rate": [float, None],
                     "rate_to_true_add": [float, 0.0],
                     "rate_to_false_add": [float, 0.0]}
-  
+
     def init_value(self, config):
         default = str(getattr(config, self.default_name)).lower()
         if default in ('true', '1', 'on', 'yes'):
@@ -94,39 +94,39 @@ class BoolAttribute(BaseAttribute):
             return False
         elif default in ('random', 'none'):
             return bool(random.random() < 0.5)
-    
+
         raise RuntimeError("Unknown default value {!r} for {!s}".format(default, self.name))
-    
+
     def mutate_value(self, value, config):
         mutate_rate = getattr(config, self.mutate_rate_name)
         if value:
             mutate_rate += getattr(config, self.rate_to_false_add_name)
         else:
             mutate_rate += getattr(config, self.rate_to_true_add_name)
-    
+
         if mutate_rate > 0:
             r = random.random()
         if r < mutate_rate:
             return random.random() < 0.5
 
         return value
-  
+
     def validate(self, config):
         pass
-  
+
 class StringAttribute(BaseAttribute):
     """Stores string values for genes, such as CPPNs' activation functions."""
-    _config_name = {"default": [str, None],
+    _config_items = {"default": [str, None],
                     "options": [list, None],
                     "mutate_rate": [float, None]}
-  
+
     def init_value(self, config):
         default = getattr(config, self.default_name)
         if default.lower() in ('none', 'random'):
             options = getattr(config, self.options_name)
             return random.choice(options)
         return default
-  
+
     def mutate_value(self, value, config):
         mutate_rate = getattr(config, self.mutate_rate_name)
         if mutate_rate > 0:
@@ -136,6 +136,6 @@ class StringAttribute(BaseAttribute):
                 return random.choice(options)
 
         return value
-  
+
     def validate(self, config):
         pass

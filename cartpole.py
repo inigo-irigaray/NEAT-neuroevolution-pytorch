@@ -2,16 +2,16 @@ import os
 import click
 
 import gym
-import numpy as np
 
-from .genome import DefaultGenome
-from .multienv_eval import MultiEnvEvaluator
-from .population import Population
-from .recurrent import RecurrentNetwork
-from .reporting import LogReporter, StdOutReporter, StatisticsReporter
-from .reproduction import DefaultReproduction
-from .species import DefaultSpeciesSet
-from .stagnation import DeafultStagnation
+from config import Config
+from genome import DefaultGenome
+from multienv_eval import MultiEnvEvaluator
+from population import Population
+from recurrent import RecurrentNetwork
+from reporting import LogReporter, StdOutReporter, StatisticsReporter
+from reproduction import DefaultReproduction
+from species import DefaultSpeciesSet
+from stagnation import DefaultStagnation
 
 
 
@@ -37,7 +37,7 @@ def run(n_generations):
     # Load the config file, which is assumed to live in
     # the same directory as this script.
     config_path = os.path.join(os.path.dirname(__file__), "neat.cfg")
-    config = neat.Config(DefaultGenome, DefaultReproduction, DefaultSpeciesSet, DefaultStagnation, config_path)
+    config = Config(DefaultGenome, DefaultReproduction, DefaultSpeciesSet, DefaultStagnation, config_path)
 
     evaluator = MultiEnvEvaluator(make_net, activate_net, make_env=make_env, max_env_steps=max_env_steps)
 

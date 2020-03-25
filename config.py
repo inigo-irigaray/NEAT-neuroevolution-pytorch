@@ -3,11 +3,7 @@ https://github.com/CodeReclaimers/neat-python/blob/master/neat/config.py"""
 
 import os
 import warnings
-
-try:
-  from configparser import ConfigParser
-except ImportError:
-  from ConfigParser import SafeConfigParser as ConfigParser
+from configparser import ConfigParser
 
 
 
@@ -17,12 +13,12 @@ class ConfigParameter:
         self.name = name
         self.value_type = value_type
         self.default = default
-    
+
     def __repr__(self):
         if self.default is None:
             return "ConfigParser(%r, %r)" % (self.name, self.value_type)
         return "ConfigParser(%r, %r, %r)" % (self.name, self.value_type, self.default)
-  
+
     def parse(self, section, config_parser):
         if int==self.value_type:
             return config_parser.getint(section, self.name)
@@ -35,9 +31,9 @@ class ConfigParameter:
             return value.split(" ")
         if str==self.value_type:
             return config_parser.get(section, self.name)
-    
+
         raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))
-    
+
     def interpret(self, config_dict):
         value = config_dict.get(self.name)
         if value is None:
@@ -49,7 +45,7 @@ class ConfigParameter:
                     return self.default
                 else:
                     value = self.default
-          
+
         try:
             if str == self.value_type:
                 return str(value)
@@ -67,19 +63,19 @@ class ConfigParameter:
             if list == self.value_type:
                 return value.split(" ")
         except Exception:
-            raise RuntimeError("Error interpreting config item %s with value %r and type %s" % 
+            raise RuntimeError("Error interpreting config item %s with value %r and type %s" %
                                (self.name, value, self.value_type))
-    
+
         raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))
-    
+
     def format(self, value):
         if list==self.value_type:
             return " ".join(value)
         return str(value)
 
-    
-    
-  
+
+
+
 def write_pretty_params(f, config, params):
     param_names = [p.name for p in params]
     longest_name = max(len(name) for name in param_names)
@@ -89,9 +85,9 @@ def write_pretty_params(f, config, params):
         p = params[name]
         f.write('%s = %s\n' % (p.name.ljust(longest_name), p.format(getattr(config, p.name))))
 
-        
-        
-    
+
+
+
 class UnknownConfigItemError(NameError):
     """Error for unknown configuration option - partially to catch typos."""
     pass
@@ -110,20 +106,20 @@ class DefaultClassConfig:
         if unknown_list:
             if len(unknown_list) > 1:
                 raise UnknownConfigItemError("Unknown configuration items:\n" + "\n\t".join(unknown_list))
-        raise UnknownConfigItemError("Unknown configuration item %s" % (unknown_list[0]))
+            raise UnknownConfigItemError("Unknown configuration item %s" % (unknown_list[0]))
 
     @classmethod
     def write_config(cls, f, config):
         write_pretty_params(f, config, config._params)
-    
-    
-    
-   
+
+
+
+
 class Config:
     """A simple container for user-configurable parameters of NEAT."""
 
     __params = [ConfigParameter('pop_size', int),
-                ConfigParameter('fitness_criterion', str), 
+                ConfigParameter('fitness_criterion', str),
                 ConfigParameter('fitness_threshold', float),
                 ConfigParameter('reset_on_extinction', bool),
                 ConfigParameter('no_fitness_termination', bool, False)]
@@ -161,11 +157,11 @@ class Config:
                     setattr(self, p.name, p.parse('NEAT', parameters))
                 except Exception:
                     setattr(self, p.name, p.default)
-                    warnings.warn("Using default '%r' for '%s'" % 
-                                  (p.default, p.name), DeprecationWarning)
+                    warnings.warn("Using default '%r' for '%s'" % (
+                                  p.default, p.name), DeprecationWarning)
             param_list_names.append(p.name)
         param_dict = dict(parameters.items('NEAT'))
-        unknown_list = [x for x in iterkeys(param_dict) if x not in param_list_names]
+        unknown_list = [x for x in param_dict.keys() if x not in param_list_names]
         if unknown_list:
             if len(unknown_list) > 1:
                 raise UnknownConfigItemError("Unknown (section 'NEAT') configuration items:\n" + "\n\t".join(unknown_list))
@@ -183,7 +179,7 @@ class Config:
 
         reproduction_dict = dict(parameters.items(reproduction_type.__name__))
         self.reproduction_config = reproduction_type.parse_config(reproduction_dict)
-      
+
     def save(self, filename):
         with open(filename, 'w') as f:
             f.write("# The 'NEAT' section specifies parameters particular to the NEAT algorithm\n")

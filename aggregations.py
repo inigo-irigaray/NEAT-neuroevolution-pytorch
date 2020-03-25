@@ -4,6 +4,8 @@ https://github.com/CodeReclaimers/neat-python/blob/master/neat/aggregations.py""
 from functools import reduce
 from operator import mul
 
+from utils import mean, median2
+
 def sum_agg(inputs):
     return sum(inputs)
 
@@ -20,7 +22,7 @@ def mean_agg(inputs):
     return mean(inputs)
 
 def median_agg(inputs):
-    return median(inputs)
+    return median2(inputs)
 
 str_to_aggregation = {
     'sum': sum_agg,
@@ -28,5 +30,5 @@ str_to_aggregation = {
     'max': max_agg,
     'min': min_agg,
     'mean': mean_agg,
-    'median': median,
+    'median': median_agg,
 }

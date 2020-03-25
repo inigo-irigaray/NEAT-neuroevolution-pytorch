@@ -5,11 +5,11 @@ import random
 import sys
 from itertools import count
 
-import .activations
-import .aggregations
-import .genes
-import .graphs
-from .config import ConfigParameter, write_pretty_params
+import activation_functions
+import aggregations
+import genes
+import graphs
+from config import ConfigParameter, write_pretty_params
 
 
 
@@ -19,7 +19,7 @@ class DefaultGenomeConfig:
                             "full", "full_direct", "partial_nodirect", "partial", "partial_direct"]
 
     def __init__(self, params):
-        self.activation_defs = activations.str_to_activation
+        self.activation_defs = activation_functions.str_to_activation
         self.aggregation_defs = aggregations.str_to_aggregation
         self._params = [ConfigParameter("n_in", int),
                         ConfigParameter("n_out", int),
@@ -66,7 +66,7 @@ class DefaultGenomeConfig:
         else:
             raise RuntimeError("Invalid structural_mutation_surer %r" % self.structural_mutation_surer)
 
-        self.node_idexer = None
+        self.node_indexer = None
 
     def add_activation(self, name, func):
         self.activation_defs[name] = func
@@ -80,8 +80,8 @@ class DefaultGenomeConfig:
                 raise RuntimeError("'partial' connection value must be between [0.0, 1.0]")
             f.write("initial_connection = {0} {1} \n".format(self.initial_connection, self.connection_fraction))
         else:
-            f.write("initial_connection = {0} {1} \n".format(self.initial_connection))
-        
+            f.write("initial_connection = {0} \n".format(self.initial_connection))
+
         assert self.initial_connection in self.allowed_connectivity
         write_pretty_params(f, self, [p for p in self._params if "initial_connection" not in p.name])
 
@@ -97,14 +97,14 @@ class DefaultGenomeConfig:
             return True
         elif self.structural_mutation_surer == "false":
             return False
-        elif self.strcutural_mutation_surer == "default":
-            return self.single_structural_surer
+        elif self.structural_mutation_surer == "default":
+            return self.single_structural_mutation
         else:
             raise RuntimeError("Invalid structural_mutation_surer {!r}".format(self.structural_mutation_surer))
 
-    
-    
-    
+
+
+
 class DefaultGenome:
     def __init__(self, key):
         self.key = key
@@ -117,7 +117,7 @@ class DefaultGenome:
         for k, ng in self.nodes.items():
             string += "\n\t{0} {1!s}".format(k, ng)
         string += "\nConnections:"
-        connections = list(self.connection.values())
+        connections = list(self.connections.values())
         connections.sort()
         for c in connections:
             string += "\n\t" + str(c)
@@ -155,7 +155,7 @@ class DefaultGenome:
                           "\tif this is desired, set initial_connection = fs_nohidden;",
                           "\tif if not, set initial_connection = fs_neat_hidden", sep="\n", file=sys.stderr)
                 self.connect_partial_nodirect(config)
-                
+
         elif "full" in config.initial_connection:
             if config.initial_connection == "full_nodirect":
                 self.connect_full_nodirect(config)
@@ -167,7 +167,7 @@ class DefaultGenome:
                           "\tif this is desired, set initial_connection = full_nodirect;",
                           "\tif not, set initial_connection = full_direct", sep='\n', file=sys.stderr)
                 self.connect_full_nodirect(config)
-                
+
         elif "partial" in config.initial_connection:
             if config.initial_connection == "partial_nodirect":
                 self.connect_partial_nodirect(config)
@@ -214,16 +214,16 @@ class DefaultGenome:
         if config.single_structural_mutation:
             div = max(1, (config.node_add_prob + config.node_delete_prob +
                           config.conn_add_prob + config.conn_delete_prob))
-        r = random.random()
-        if r < (config.node_add_prob / div):
-            self.mutate_add_node(config)
-        elif r < ((config.node_add_prob + config.node_delete_prob) / div):
-            self.mutate_delete_node(config)
-        elif r < ((config.node_add_prob + config.node_delete_prob + config.conn_add_prob) / div):
-            self.mutate_add_connection(config)
-        elif r < ((config.node_add_prob + config.node_delete_prob +
-                   config.conn_add_prob + config.conn_delete_prob) / div):
-            self.mutate_delete_connection(config)
+            r = random.random()
+            if r < (config.node_add_prob / div):
+                self.mutate_add_node(config)
+            elif r < ((config.node_add_prob + config.node_delete_prob) / div):
+                self.mutate_delete_node(config)
+            elif r < ((config.node_add_prob + config.node_delete_prob + config.conn_add_prob) / div):
+                self.mutate_add_connection(config)
+            elif r < ((config.node_add_prob + config.node_delete_prob +
+                       config.conn_add_prob + config.conn_delete_prob) / div):
+                self.mutate_delete_connection(config)
         else:
             if random.random() < config.node_add_prob:
                 self.mutate_add_node(config)
@@ -254,7 +254,7 @@ class DefaultGenome:
         conn2split.enabled = False
         in_n, out_n = conn2split.key
         # connects in_n node with new node with weight=1.0 & new node with out_n with old weight bewteen in_n and out_n
-        self.add_connection(config, in_n, new_n_key, 1.0, True) 
+        self.add_connection(config, in_n, new_n_key, 1.0, True)
         self.add_connection(config, new_n_key, out_n, conn2split.weight, True)
 
     def add_connection(self, config, in_key, out_key, weight, enabled):
@@ -301,8 +301,8 @@ class DefaultGenome:
             return
         # avoids creating cycles for feed forward networks
         if config.feed_forward and graphs.creates_cycle(list(self.connections.keys()), key):
-            return 
-        
+            return
+
         cg = self.create_connection(config, in_node, out_node)
         self.connections[cg.key] = cg
 
@@ -339,12 +339,12 @@ class DefaultGenome:
                 if c2 is None:
                     disjoint_connections += 1
                 else:
-                    connection_distance += c1.distance(c2)
+                    connection_distance += c1.distance(c2, config)
 
             max_connections = max(len(self.connections), len(other.connections))
-            connection_distance = (connection_distance + 
-                                  (config.compatibility_disjoint_coefficient * disjoint_connections)) /
-                                  max_connections
+            connection_distance = (connection_distance +
+                                  (config.compatibility_disjoint_coefficient *
+                                   disjoint_connections)) /max_connections
 
         distance = node_distance + connection_distance
         return distance
@@ -378,14 +378,14 @@ class DefaultGenome:
             connection = self.create_connection(config, in_key, out_key)
             self.connections[connection.key] = connection
 
-    def compute_full_connection(self, config, direct):
-        hidden = [i for i in self.node.keys() if i not in config.output_keys]
-        output = [i for i in self.node.keys() if i in config.output_keys]
+    def compute_full_connections(self, config, direct):
+        hidden = [i for i in self.nodes.keys() if i not in config.output_keys]
+        output = [i for i in self.nodes.keys() if i in config.output_keys]
         connections = []
         if direct or (not hidden): # direct connections
             for in_key in config.input_keys:
                 for out_key in config.output_keys:
-                    connections.append((in_key, out_key))  
+                    connections.append((in_key, out_key))
         if hidden: # hidden connections
             for in_key in config.input_keys:
                 for h in hidden:
@@ -396,7 +396,7 @@ class DefaultGenome:
         if not config.feed_forward: # self-connections in RNNs
             for i in self.nodes.keys():
                 connections.append((i, i))
-                
+
         return connections
 
     def connect_full_nodirect(self, config):
@@ -411,8 +411,8 @@ class DefaultGenome:
 
     def connect_partial_nodirect(self, config):
         assert 0 <= config.connection_fraction <= 1
-        all_connections = self.compute_full_connection(config, False)
-        shuffle(all_connections)
+        all_connections = self.compute_full_connections(config, False)
+        random.shuffle(all_connections)
         n2add = int(round(len(all_connections) * config.connection_fraction))
         for in_key, out_key in all_connections[:n2add]:
             connection = self.create_connection(config, in_key, out_key)
@@ -420,8 +420,8 @@ class DefaultGenome:
 
     def connect_partial_direct(self, config):
         assert 0 <= config.connection_fraction <= 1
-        all_connections = self.compute_full_connection(config, True)
-        shuffle(all_connections)
+        all_connections = self.compute_full_connections(config, True)
+        random.shuffle(all_connections)
         n2add = int(round(len(all_connections) * config.connection_fraction))
         for in_key, out_key in all_connections[:n2add]:
             connection = self.create_connection(config, in_key, out_key)

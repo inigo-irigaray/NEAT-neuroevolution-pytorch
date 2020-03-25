@@ -5,38 +5,37 @@ import random
 from itertools import count
 from math import ceil
 
-import numpy as np
-
-from .config import ConfigParameter, DefaultClassConfig
+from config import ConfigParameter, DefaultClassConfig
+from utils import mean
 
 
 
 
 class DefaultReproduction(DefaultClassConfig):
+    @classmethod
+    def parse_config(cls, param_dict):
+        return DefaultClassConfig(param_dict, [ConfigParameter("elitism", int, 0),
+                                               ConfigParameter("survival_threshold", float, 0.2),
+                                               ConfigParameter("min_species_size", int, 2)])
+
     def __init__(self, config, reporters, stagnation):
         self.reproduction_config = config
         self.reporters = reporters
         self.stagnation = stagnation
         self.genome_indexer = count(1)
         self.ancestors = {}
-    
-    @classmethod
-    def parse_config(cls, params):
-        return DefaultClassConfig(params, [ConfigParameter("elitism", int, 0),
-                                           ConfigParameter("survival_threshold", float, 0.2),
-                                           ConfigParameter("min_species_size", int, 2)])
-  
+
     @staticmethod
-    def compute_spawn(adj_fitness, prev_sizes, pop_size, min_size):
+    def compute_spawn(adj_fitness, prev_sizes, pop_size, min_species_size):
         """Calculates the number of offspring for a given niche(species) given its fitness"""
         adj_fit_sum = sum(adj_fitness)
         spawn_amounts = []
         for adj_fit, prev_size in zip(adj_fitness, prev_sizes):
             if adj_fit_sum > 0:
-                size = max(min_size, adj_fit / adj_fit_sum * pop_size)
+                size = max(min_species_size, adj_fit / adj_fit_sum * pop_size)
             else:
-                size = min_size
-      
+                size = min_species_size
+
             diff = (size - prev_size) * 0.5
             species_extra = int(round(diff))
             spawn = prev_size
@@ -47,51 +46,52 @@ class DefaultReproduction(DefaultClassConfig):
             elif diff < 0:
                 spawn -= 1
             spawn_amounts.append(spawn)
-    
+
         total_spawn = sum(spawn_amounts)
         norm_coeff = pop_size / total_spawn
-        spawn_amounts = [max(min_species_size, int(round(spawn * norm_coeff)) for spawn in spawn_amounts)]
+        spawn_amounts = [max(min_species_size, int(round(spawn * norm_coeff))) for spawn in spawn_amounts]
         return spawn_amounts
-  
+
     def create_new(self, genome_type, genome_config, n_genomes):
         new_genomes = {}
-        for i in range(n_genomes):
+        for _ in range(n_genomes):
             key = next(self.genome_indexer)
             genome = genome_type(key)
             genome.configure_new(genome_config)
             new_genomes[key] = genome
             self.ancestors[key] = tuple()
         return new_genomes
-  
+
     def reproduce(self, config, species, pop_size, generation):
         all_fitnesses = []
         remaining_species = []
         # removes stagnant species
-        for stag_key, stag_species, stagnant in self.stagnation.update(species, generation): 
+        for stag_key, stag_species, stagnant in self.stagnation.update(species, generation):
             if stagnant:
                 self.reporters.species_stagnant(stag_key, stag_species)
             else:
                 all_fitnesses.extend(member.fitness for member in stag_species.members.values())
                 remaining_species.append(stag_species)
-    
+
         if not remaining_species: # all species were stagnant & therefore eliminated
             species.species = {}
             return {}
-    
+
         min_fitness = min(all_fitnesses)
         max_fitness = max(all_fitnesses)
         fitness_range = max(1.0, max_fitness - min_fitness)
         for spec in remaining_species:
-            mean_species_fit = np.mean([member.fitness for member in spec.members.values()])
+            mean_species_fit = mean([member.fitness for member in spec.members.values()])
             adj_fit = (mean_species_fit - min_fitness) / fitness_range
             spec.adjusted_fitness = adj_fit
-    
+
         adj_fitnesses = [spec.adjusted_fitness for spec in remaining_species]
-        mean_adj_fit = np.mean(adj_fitnesses)
+        mean_adj_fit = mean(adj_fitnesses)
         self.reporters.info("Average adjusted fitness: {:.3f}".format(mean_adj_fit))
 
-        prev_sizes = [len(spec.members for spec in remaining_species)]
-        min_species_size = max(self.reproduction_config.min_species_size, self.reproduction_config.elitism)
+        prev_sizes = [len(spec.members) for spec in remaining_species]
+        min_species_size = max(self.reproduction_config.min_species_size,
+                               self.reproduction_config.elitism)
         spawn_amounts = self.compute_spawn(adj_fitnesses, prev_sizes, pop_size, min_species_size)
 
         new_population = {}
@@ -109,7 +109,7 @@ class DefaultReproduction(DefaultClassConfig):
                     spawn -= 1
             if spawn <= 0:
                 continue
-        
+
             cutoff = int(ceil(self.reproduction_config.survival_threshold * len(old_members)))
             cutoff = max(cutoff, 2)
             old_members = old_members[:cutoff]
@@ -123,5 +123,5 @@ class DefaultReproduction(DefaultClassConfig):
                 child.mutate(config.genome_config)
                 new_population[gkey] = child
                 self.ancestors[gkey] = (parent1_key, parent2_key)
-        
-        return new_population 
+
+        return new_population
