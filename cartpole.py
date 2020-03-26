@@ -21,15 +21,12 @@ max_env_steps = 200
 def make_env():
     return gym.make("CartPole-v0")
 
-
 def make_net(genome, config, bs):
     return RecurrentNetwork.create(genome, config, bs)
-
 
 def activate_net(net, states):
     outputs = net.activate(states).numpy()
     return outputs[:, 0] > 0.5
-
 
 @click.command()
 @click.option("--n_generations", type=int, default=100)
@@ -54,6 +51,8 @@ def run(n_generations):
     pop.add_reporter(logger)
 
     pop.run(eval_genomes, n_generations)
+
+
 
 
 if __name__ == "__main__":
