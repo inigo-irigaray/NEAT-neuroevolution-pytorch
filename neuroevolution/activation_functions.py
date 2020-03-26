@@ -10,13 +10,13 @@ import torch.nn.functional as F
 
 def sigmoid_act(x):
     return torch.sigmoid(5.0 * x)
-  
+
 def tanh_act(x):
     return torch.tanh(2.5 * x)
 
 def sin_act(x):
     return torch.sin(math.pi * x)
-  
+
 def relu_act(x):
     return F.relu(x)
 
@@ -34,7 +34,7 @@ str_to_activation = {
     'tanh': tanh_act,
     'sin': sin_act,
     'relu': relu_act,
-    'gaussian': gaussian_act,
+    'gauss': gaussian_act,
     'identity': identity_act,
     'abs': absolute_act,
 }

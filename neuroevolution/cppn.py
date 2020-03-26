@@ -32,7 +32,7 @@ class Node:
                  self.name, self.response, self.bias, self.activation_name, self.aggregation_name)
         child_reprs = []
         for w, child in zip(self.weights, self.children):
-            child_reprs.append("    <- {} * " % (w) + repr(child).replace("\n", "\n    "))
+            child_reprs.append("    <- {} * ".format(w) + repr(child).replace("\n", "\n    "))
         return header + "\n" + "\n".join(child_reprs)
 
     def activate(self, xs, shape):
@@ -73,7 +73,6 @@ class Node:
     def _postreset(self):
         if self.is_reset is not None:
             self.is_reset = None
-            self.activs = None
             for child in self.children:
                 child._postreset()
 

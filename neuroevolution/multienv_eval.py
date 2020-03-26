@@ -35,8 +35,7 @@ class MultiEnvEvaluator:
             if self.max_env_steps is not None and step_num == self.max_env_steps:
                 break
             if debug:
-                actions = self.activate_net(
-                    net, states, debug=True, step_num=step_num)
+                actions = self.activate_net(net, states, debug=True, step_num=step_num)
             else:
                 actions = self.activate_net(net, states)
             assert len(actions) == len(self.envs)
