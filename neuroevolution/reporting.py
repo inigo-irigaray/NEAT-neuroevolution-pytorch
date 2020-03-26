@@ -10,7 +10,7 @@ import json
 import time
 from pprint import pprint
 
-from utils import mean, std, median2
+from neuroevolution.utils import mean, std, median2
 
 
 
@@ -115,7 +115,7 @@ class StdOutReporter(BaseReporter):
                 f = "--" if s.fitness is None else "{:.1f}".format(s.fitness)
                 af = "--" if s.adjusted_fitness is None else "{:.3f}".format(s.adjusted_fitness)
                 st = self.generation - s.last_improved
-                print(" {: >4} {: >3} {: >4} {: >7} {: >7} {: >4}".format(skey, a, n, f, af, st))
+                print(" {: >4} {: >4} {: >5} {: >8} {: >8} {: >5}".format(skey, a, n, f, af, st))
         else:
             print("Population of {0:d} members in {1:d} species".format(ng, ns))
 

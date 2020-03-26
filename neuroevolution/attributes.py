@@ -3,7 +3,7 @@ https://github.com/CodeReclaimers/neat-python/blob/master/neat/attributes.py"""
 
 import random
 
-from config import ConfigParameter
+from neuroevolution.config import ConfigParameter
 
 
 

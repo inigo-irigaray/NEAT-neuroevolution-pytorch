@@ -4,7 +4,7 @@ https://github.com/CodeReclaimers/neat-python/blob/master/neat/aggregations.py""
 from functools import reduce
 from operator import mul
 
-from utils import mean, median2
+from neuroevolution.utils import mean, median2
 
 def sum_agg(inputs):
     return sum(inputs)

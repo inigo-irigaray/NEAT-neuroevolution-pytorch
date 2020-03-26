@@ -1,8 +1,8 @@
 """Implementation based on NEAT-Python neat-python/neat/population.py:
 https://github.com/CodeReclaimers/neat-python/blob/master/neat/population.py"""
 
-import reporting
-from utils import mean
+import neuroevolution.reporting as reporting
+from neuroevolution.utils import mean
 
 
 

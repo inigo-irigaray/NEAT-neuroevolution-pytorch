@@ -3,9 +3,9 @@ https://github.com/uber-research/PyTorch-NEAT/blob/master/pytorch_neat/recurrent
 
 import torch
 
-from activation_functions import sigmoid_act
-from graphs import required_for_output
-from utils import make_dense
+from neuroevolution.activation_functions import sigmoid_act
+from neuroevolution.graphs import required_for_output
+from neuroevolution.utils import make_dense
 
 
 

@@ -4,7 +4,7 @@ https://github.com/CodeReclaimers/neat-python/blob/master/neat/genes.py"""
 import warnings
 import random
 
-from attributes import FloatAttribute, BoolAttribute, StringAttribute
+from neuroevolution.attributes import FloatAttribute, BoolAttribute, StringAttribute
 
 
 

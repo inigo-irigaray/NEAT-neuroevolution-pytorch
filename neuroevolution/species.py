@@ -3,8 +3,8 @@ https://github.com/CodeReclaimers/neat-python/blob/master/neat/species.py"""
 
 from itertools import count
 
-from config import ConfigParameter, DefaultClassConfig
-from utils import mean, std
+from neuroevolution.config import ConfigParameter, DefaultClassConfig
+from neuroevolution.utils import mean, std
 
 
 

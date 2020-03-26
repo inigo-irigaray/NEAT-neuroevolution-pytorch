@@ -3,8 +3,8 @@ https://github.com/CodeReclaimers/neat-python/blob/master/neat/stagnation.py"""
 
 import sys
 
-from config import ConfigParameter, DefaultClassConfig
-from utils import stat_functions
+from neuroevolution.config import ConfigParameter, DefaultClassConfig
+from neuroevolution.utils import stat_functions
 
 
 

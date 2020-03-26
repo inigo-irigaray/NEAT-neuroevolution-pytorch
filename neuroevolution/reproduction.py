@@ -5,8 +5,8 @@ import random
 from itertools import count
 from math import ceil
 
-from config import ConfigParameter, DefaultClassConfig
-from utils import mean
+from neuroevolution.config import ConfigParameter, DefaultClassConfig
+from neuroevolution.utils import mean
 
 
 

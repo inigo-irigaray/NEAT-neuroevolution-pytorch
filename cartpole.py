@@ -3,15 +3,15 @@ import click
 
 import gym
 
-from config import Config
-from genome import DefaultGenome
-from multienv_eval import MultiEnvEvaluator
-from population import Population
-from recurrent import RecurrentNetwork
-from reporting import LogReporter, StdOutReporter, StatisticsReporter
-from reproduction import DefaultReproduction
-from species import DefaultSpeciesSet
-from stagnation import DefaultStagnation
+from neuroevolution.config import Config
+from neuroevolution.genome import DefaultGenome
+from neuroevolution.multienv_eval import MultiEnvEvaluator
+from neuroevolution.population import Population
+from neuroevolution.recurrent import RecurrentNetwork
+from neuroevolution.reporting import LogReporter, StdOutReporter, StatisticsReporter
+from neuroevolution.reproduction import DefaultReproduction
+from neuroevolution.species import DefaultSpeciesSet
+from neuroevolution.stagnation import DefaultStagnation
 
 
 
@@ -33,7 +33,7 @@ def activate_net(net, states):
 def run(n_generations):
     # Load the config file, which is assumed to live in
     # the same directory as this script.
-    config_path = os.path.join(os.path.dirname(__file__), "neat.cfg")
+    config_path = os.path.join(os.path.dirname(__file__), "cartpole.cfg")
     config = Config(DefaultGenome, DefaultReproduction, DefaultSpeciesSet, DefaultStagnation, config_path)
 
     evaluator = MultiEnvEvaluator(make_net, activate_net, make_env=make_env, max_env_steps=max_env_steps)
@@ -47,7 +47,7 @@ def run(n_generations):
     pop.add_reporter(stats)
     reporter = StdOutReporter(True)
     pop.add_reporter(reporter)
-    logger = LogReporter("neat.log", evaluator.eval_genome)
+    logger = LogReporter("cartpole.log", evaluator.eval_genome)
     pop.add_reporter(logger)
 
     pop.run(eval_genomes, n_generations)

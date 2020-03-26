@@ -3,9 +3,9 @@ https://github.com/uber-research/PyTorch-NEAT/blob/master/pytorch_neat/cppn.py""
 
 import torch
 
-from activation_functions import str_to_activation
-from aggregations import str_to_aggregation
-from graphs import required_for_output
+from neuroevolution.activation_functions import str_to_activation
+from neuroevolution.aggregations import str_to_aggregation
+from neuroevolution.graphs import required_for_output
 
 
 

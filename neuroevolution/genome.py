@@ -5,11 +5,11 @@ import random
 import sys
 from itertools import count
 
-import activation_functions
-import aggregations
-import genes
-import graphs
-from config import ConfigParameter, write_pretty_params
+import neuroevolution.activation_functions as activation_functions
+import neuroevolution.aggregations as aggregations
+import neuroevolution.genes as genes
+import neuroevolution.graphs as graphs
+from neuroevolution.config import ConfigParameter, write_pretty_params
 
 
 

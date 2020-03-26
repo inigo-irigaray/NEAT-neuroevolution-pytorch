@@ -3,8 +3,8 @@ https://github.com/uber-research/PyTorch-NEAT/blob/master/pytorch_neat/adaptive_
 
 import torch
 
-from activation_functions import identity_act, tanh_act
-from cppn import clamp_weights_, create_cppn, get_coord_inputs
+from neuroevolution.activation_functions import identity_act, tanh_act
+from neuroevolution.cppn import clamp_weights_, create_cppn, get_coord_inputs
 
 
 
