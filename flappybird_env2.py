@@ -4,48 +4,34 @@ https://github.com/techwithtim/NEAT-Flappy-Bird/blob/master/flappy_bird.py"""
 import os
 import random
 
-import pygame
-pygame.font.init()
+import pyglet
+###pyglet.font.init()
 
 WIN_WIDTH = 600
 WIN_HEIGHT = 800
 FLOOR = 730
-STAT_FONT = pygame.font.SysFont("comicsans", 50)
-END_FONT = pygame.font.SysFont("comicsans", 70)
+###STAT_FONT = pygame.font.SysFont("comicsans", 50)
+###END_FONT = pygame.font.SysFont("comicsans", 70)
 DRAW_LINES = False
 
-"""
-WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
-pygame.display.set_caption("Flappy Bird")
 
-pipe_img = pygame.transform.scale2x(pygame.image.load(os.path.join("/Users/inigoirigaray/Documents/GitHub/NEAT-neuroevolution-pytorch/flappybird_imgs", "pipe.png")).convert_alpha())
-
-bg_img = pygame.transform.scale(pygame.image.load(os.path.join("/Users/inigoirigaray/Documents/GitHub/NEAT-neuroevolution-pytorch/flappybird_imgs", "bg.png")).convert_alpha(), (600, 900))
-
-bird_images = [pygame.transform.scale2x(pygame.image.load(os.path.join("/Users/inigoirigaray/Documents/GitHub/NEAT-neuroevolution-pytorch/flappybird_imgs", "bird" + str(x) + ".png"))) for x in range(1, 4)]
-
-base_img = pygame.transform.scale2x(pygame.image.load(os.path.join("/Users/inigoirigaray/Documents/GitHub/NEAT-neuroevolution-pytorch/flappybird_imgs", "base.png")).convert_alpha())
-"""
 
 
 
 class Env:
-    #"""
-    WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
-    pygame.display.set_caption("Flappy Bird")
+    window = pyglet.window.Window(width=WIN_WIDTH, height=WIN_HEIGHT,
+            caption="Flappy Bird")
+    pipe_img = pyglet.sprite.Sprite(pyglet.image.load(
+        os.path.join("flappybird_imgs", "pipe.png"))).update(scale=2.0)
+    bg_img = pyglet.sprite.Sprite(pyglet.image.load(os.path.join("flappybird_imgs", "bg.png")))
+    bg_img.width = 600
+    bg_img.height = 800
+    bird_images = [pyglet.sprite.Sprite(pyglet.image.load(os.path.join("flappybird_imgs", "bird" + str(x) + ".png"))) for x in range(1, 4)]
+    base_img = pyglet.sprite.Sprite(pyglet.image.load(
+        os.path.join("flappybird_imgs", "base.png")))
 
-    pipe_img = pygame.transform.scale2x(pygame.image.load(
-        os.path.join("/Users/inigoirigaray/Documents/GitHub/NEAT-neuroevolution-pytorch/flappybird_imgs", "pipe.png")).convert_alpha())
+    pyglet.app.run()
 
-    bg_img = pygame.transform.scale(pygame.image.load(
-        os.path.join("/Users/inigoirigaray/Documents/GitHub/NEAT-neuroevolution-pytorch/flappybird_imgs", "bg.png")).convert_alpha(), (600, 900))
-
-    bird_images = [pygame.transform.scale2x(pygame.image.load(
-        os.path.join("/Users/inigoirigaray/Documents/GitHub/NEAT-neuroevolution-pytorch/flappybird_imgs", "bird" + str(x) + ".png"))) for x in range(1, 4)]
-
-    base_img = pygame.transform.scale2x(pygame.image.load(
-        os.path.join("/Users/inigoirigaray/Documents/GitHub/NEAT-neuroevolution-pytorch/flappybird_imgs", "base.png")).convert_alpha())
-    #    """
     def __init__(self):
         self.bird = Bird(230, 350)
         self.base = Base(FLOOR)
@@ -58,11 +44,17 @@ class Env:
         self.reward = 0.0
         self.done = False
 
-        self.clock = pygame.time.Clock()
+    @window.event
+    def on_draw():
+        Env.window.clear()
+        #Env.pipe_img.draw()
+        Env.bg_img.draw()
+        Env.base_img.draw()
+        #self.bird.draw_window()
+
 
     def step(self, action):
         while True:
-            self.clock.tick(30)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -70,7 +62,8 @@ class Env:
                     self.done = True
 
             pipe_ind = 0
-            if len(self.pipes) > 1 and self.bird.x > self.pipes[0].x + self.pipes[0].PIPE_TOP.get_width():
+            if len(self.pipes) > 1 and self.bird.x > self.pipes[0].x +
+                                        self.pipes[0].PIPE_TOP.width:
                 pipe_ind = 1
 
             self.reward += 0.1
@@ -89,7 +82,7 @@ class Env:
                     self.reward -= 1.0
                     self.done = True
 
-                if pipe.x + pipe.PIPE_TOP.get_width() < 0:
+                if pipe.x + pipe.PIPE_TOP.width < 0:
                     rem.append(pipe)
 
                 if not pipe.passed and pipe.x < self.bird.x:
@@ -104,7 +97,7 @@ class Env:
             for r in rem:
                 self.pipes.remove(r)
 
-            if self.bird.y + self.bird.img.get_height() - 10 >= FLOOR or self.bird.y < -50:
+            if self.bird.y + self.bird.img.height - 10 >= FLOOR or self.bird.y < -50:
                 self.reward -= 1
                 self.done = True
 
@@ -180,10 +173,10 @@ class Bird:
             if self.tilt > -90:
                 self.tilt -= self.ROT_VEL
 
-    def draw(self, win):
+    def draw(self):
         """
         draw the bird
-        :param win: pygame window or surface
+        :param
         :return: None
         """
         self.img_count += 1
@@ -208,14 +201,10 @@ class Bird:
 
 
         # tilt the bird
-        blitRotateCenter(win, self.img, (self.x, self.y), self.tilt)
+        rotated_bird = pyglet.sprite.Sprite(self.image).update(rotation=self.tilt)
+        rotated_bird.draw()
 
-    def get_mask(self):
-        """
-        gets the mask for the current image of the bird
-        :return: None
-        """
-        return pygame.mask.from_surface(self.img)
+
 
 
 class Pipe():
@@ -239,7 +228,7 @@ class Pipe():
         self.top = 0
         self.bottom = 0
 
-        self.PIPE_TOP = pygame.transform.flip(Env.pipe_img, False, True)
+        self.PIPE_TOP = Env.pipe_img.update(rotation=180.0)
         self.PIPE_BOTTOM = Env.pipe_img
 
         self.passed = False
@@ -252,7 +241,7 @@ class Pipe():
         :return: None
         """
         self.height = random.randrange(50, 450)
-        self.top = self.height - self.PIPE_TOP.get_height()
+        self.top = self.height - self.PIPE_TOP.height
         self.bottom = self.height + self.GAP
 
     def move(self):
@@ -269,17 +258,20 @@ class Pipe():
         :return: None
         """
         # draw top
-        win.blit(self.PIPE_TOP, (self.x, self.top))
+        self.PIPE_TOP.position.update(x=self.x, y=self.top).draw()
         # draw bottom
-        win.blit(self.PIPE_BOTTOM, (self.x, self.bottom))
+        self.PIPE_BOTTOM.update(x=self.x, y=self.bottom).draw()
 
 
-    def collide(self, bird):
+    def collide(self, bird, base):
         """
         returns if a point is colliding with the pipe
         :param bird: Bird object
         :return: Bool
         """
+        if self.bird.x <= self.x + self.PIPE_TOP.width + 15 and self.bird.x >= self.x and\
+           self.bird.y <= self.y :
+            self.bird
         bird_mask = bird.get_mask()
         top_mask = pygame.mask.from_surface(self.PIPE_TOP)
         bottom_mask = pygame.mask.from_surface(self.PIPE_BOTTOM)
@@ -294,12 +286,15 @@ class Pipe():
 
         return False
 
+
+
+
 class Base:
     """
     Represnts the moving floor of the game
     """
     VEL = 5
-    WIDTH = Env.base_img.get_width()
+    WIDTH = Env.base_img.width
     IMG = Env.base_img
 
     def __init__(self, y):
@@ -325,29 +320,15 @@ class Base:
         if self.x2 + self.WIDTH < 0:
             self.x2 = self.x1 + self.WIDTH
 
-    def draw(self, win):
+    def draw(self):
         """
         Draw the floor. This is two images that move together.
-        :param win: the pygame surface/window
+        :param
         :return: None
         """
-        win.blit(self.IMG, (self.x1, self.y))
-        win.blit(self.IMG, (self.x2, self.y))
+        self.IMG.update(x=self.x1, y=self.y).draw()
+        self.IMG.update(x=self.x2, y=self.y).draw()
 
-
-def blitRotateCenter(surf, image, topleft, angle):
-    """
-    Rotate a surface and blit it to the window
-    :param surf: the surface to blit to
-    :param image: the image surface to rotate
-    :param topLeft: the top left position of the image
-    :param angle: a float value for angle
-    :return: None
-    """
-    rotated_image = pygame.transform.rotate(image, angle)
-    new_rect = rotated_image.get_rect(center=image.get_rect(topleft=topleft).center)
-
-    surf.blit(rotated_image, new_rect.topleft)
 
 def draw_window(win, birds, pipes, base, score, gen, pipe_ind):
     """
@@ -362,7 +343,8 @@ def draw_window(win, birds, pipes, base, score, gen, pipe_ind):
     """
     if gen == 0:
         gen = 1
-    win.blit(Env.bg_img, (0, 0))
+
+    Env.bg_img.draw()
 
     for pipe in pipes:
         pipe.draw(win)
@@ -374,14 +356,14 @@ def draw_window(win, birds, pipes, base, score, gen, pipe_ind):
             try:
                 pygame.draw.line(win,
                                  (255, 0, 0),
-                                 (bird.x+bird.img.get_width()/2, bird.y + bird.img.get_height()/2),
-                                 (pipes[pipe_ind].x + pipes[pipe_ind].PIPE_TOP.get_width()/2,
+                                 (bird.x+bird.img.width/2, bird.y + bird.img.height/2),
+                                 (pipes[pipe_ind].x + pipes[pipe_ind].PIPE_TOP.width/2,
                                   pipes[pipe_ind].height),
                                  5)
                 pygame.draw.line(win,
                                  (255, 0, 0),
-                                 (bird.x+bird.img.get_width()/2, bird.y + bird.img.get_height()/2),
-                                 (pipes[pipe_ind].x + pipes[pipe_ind].PIPE_BOTTOM.get_width()/2,
+                                 (bird.x+bird.img.width/2, bird.y + bird.img.height/2),
+                                 (pipes[pipe_ind].x + pipes[pipe_ind].PIPE_BOTTOM.width/2,
                                   pipes[pipe_ind].bottom),
                                  5)
             except:

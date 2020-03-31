@@ -32,6 +32,7 @@ class MultiEnvEvaluator:
         self.activate_net = activate_net
         self.batch_size = batch_size
         self.max_env_steps = max_env_steps
+        self.clock = pygame.time.Clock()
 
     def eval_genome(self, genome, config, debug=False):
         net = self.make_net(genome, config, self.batch_size)
